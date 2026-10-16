@@ -54,6 +54,8 @@ export const dist = (a: V3m, b: V3m): number => Math.hypot(a[0] - b[0], a[1] - b
 /** Delay (ms) the follower trails the player by, per stage. */
 export const FOLLOWER_DELAY = { 2: 6500, 3: 2600, 4: 1400 } as const;
 const MIN_DELAY = 1100;
+/** A shortcut may land on any recorded point at least this old. */
+const SHORTCUT_LOOKAHEAD_MIN_AGE_MS = 500;
 
 export interface FollowerMark {
   p: V3m;
@@ -153,7 +155,9 @@ export class FollowerSim {
       this.maybeMark(out, pt.n, pt.surface, now, false);
 
       if (this.stage >= 4 && this.rng() < 0.02) {
-        const sc = this.findShortcut(history, targetIndex, predicted);
+        // Look past the delay target: a shortcut cuts across a loop the player has already drawn.
+        const lookahead = Math.max(targetIndex, history.indexAt(now - SHORTCUT_LOOKAHEAD_MIN_AGE_MS));
+        const sc = this.findShortcut(history, lookahead, predicted);
         if (sc) {
           this.shortcutTarget = sc;
           this.shortcuts++;

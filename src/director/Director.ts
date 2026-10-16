@@ -387,7 +387,8 @@ export class Director {
     if (this.gatewayLeader && this.gatewayLeader !== leader && a[leader] - a[this.gatewayLeader] < 0.08) leader = this.gatewayLeader;
     this.gatewayLeader = leader;
     const inPhase = ctx.now - this.phaseEnteredAt('confrontation');
-    const next: EndingId[] = this.confrontationEvents >= 2 ? (inPhase > PACING.allGatewaysAfterMs ? ['acknowledgment', 'refusal', 'reversal'] : [leader]) : [];
+    let next: EndingId[] = this.confrontationEvents >= 2 ? (inPhase > PACING.allGatewaysAfterMs ? ['acknowledgment', 'refusal', 'reversal'] : [leader]) : [];
+    if (this.testGateways) next = this.testGateways;
     if (next.join() !== this.gateways.join()) this.setGateways(next);
   }
 
@@ -412,6 +413,20 @@ export class Director {
   }
 
   // ——— deterministic test / debug controls ———
+
+  private testGateways: EndingId[] | null = null;
+
+  /**
+   * Test mode only: jump to confrontation with the given gateways open, as if
+   * two confrontation events had already happened. The ending itself still
+   * goes through the phase machine's BEGIN_ENDING guard.
+   */
+  testOpenGateways(endings: EndingId[]): void {
+    if (this.currentPhase !== 'confrontation') this.forcePhase('confrontation');
+    this.confrontationEvents = Math.max(this.confrontationEvents, 2);
+    this.testGateways = endings;
+    this.setGateways(endings);
+  }
 
   forcePhase(phase: Exclude<Phase, 'resolution'>): void {
     this.actor.send({ type: 'FORCE', phase, now: this.now });

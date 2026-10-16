@@ -34,6 +34,11 @@ export interface TelemetrySnapshot {
 export class Telemetry {
   readonly emitter = new Emitter<TelemetryEvents>();
   private events: BehavioralEvent[] = [];
+
+  /** Read-only view of the retained log (newest last). */
+  get recent(): readonly BehavioralEvent[] {
+    return this.events;
+  }
   private nextId = 1;
   private counters = new Map<string, number>();
 

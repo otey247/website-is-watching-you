@@ -30,6 +30,7 @@ export const ACTION_TYPES = [
   'message_read',
   'player_idle',
   'look_away_test',
+  'ending_started',
 ] as const;
 export type ActionType = (typeof ACTION_TYPES)[number];
 

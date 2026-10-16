@@ -82,11 +82,11 @@ export const ANOMALIES: AnomalyDef[] = [
     },
     prerequisite: (ctx) => ctx.world.get('photograph').state === 'original',
     affinity: (ctx) => 1 + ctx.observer.interestShare('photograph') * 4,
-    plan: (ctx, evidence) => ({
-      targets: ['photograph'],
-      evidence,
-      steps: [{ op: 'set', object: 'photograph', patch: { state: ctx.rng.chance(0.5) ? 'removed' : 'shifted', mode: 'garden' } }],
-    }),
+    plan: (ctx, evidence) => {
+      // The gazing variant later keeps whichever composition this produced (state.mode).
+      const variant = ctx.rng.chance(0.5) ? 'removed' : 'shifted';
+      return { targets: ['photograph'], evidence, steps: [{ op: 'set', object: 'photograph', patch: { state: variant, mode: variant } }] };
+    },
   },
   {
     id: 'chair_rotate_slight',

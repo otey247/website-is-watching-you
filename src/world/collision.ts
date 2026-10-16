@@ -61,6 +61,18 @@ export function resolvePosition(desired: Vec2, radius: number, obstacles: Box2[]
     if (p.z > maxZ) ((p.z = maxZ), (moved = true));
     if (!moved) break;
   }
+  if (!collides(p, radius, obstacles)) return p;
+  // Push-out can oscillate in pockets narrower than the chair (between an
+  // obstacle and a wall). Fall back to the nearest free point around the
+  // desired position so the result is always collision free.
+  for (let r = 0.02; r <= 6; r += 0.02) {
+    const n = Math.max(8, Math.ceil((2 * Math.PI * r) / 0.02));
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      const c = { x: desired.x + Math.cos(a) * r, z: desired.z + Math.sin(a) * r };
+      if (!collides(c, radius, obstacles)) return c;
+    }
+  }
   return p;
 }
 
